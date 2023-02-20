@@ -1,4 +1,4 @@
-const mysql = require("mysql2/promise") 
+const mysql = require("mysql2/promise");
 
 async function getConnection() {
   return mysql.createConnection({
@@ -8,4 +8,13 @@ async function getConnection() {
     database: "project 1",
   })
 }
+async function addPost(socketId, message){
+  const con = await getConnection()
+  const send = await con.query("INSERT INTO data (SocketID, Message) VALUES(?,?)", [socketId, message])
+  await con.end()
+}
 
+module.exports = {
+  getConnection,
+  addPost,
+}

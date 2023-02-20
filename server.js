@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
-const db = require("./Database");
+const bodyParser = require('body-parser');
+const db = require("./Database.js");
 const port = 3000;
 
 const http = require("http")
@@ -8,6 +9,7 @@ const socketIO = require("socket.io")
 let server = http.createServer(app)
 let io = socketIO(server)
 
+app.use(bodyParser.urlencoded({ extended: false}))
 app.use(express.static('public'))
 
 // app.get("/", (req, res) => {
@@ -24,18 +26,13 @@ io.on("connection", (socket) => {
     socket.on("clicked", (data) => {
     socket.broadcast.emit("clientClicked", data)
   })
-})
-  
-app.post("/add-post", function(req, res){
-    var msg = req.message
-    db.getConnection()
-    var sql = "INSERT INTO data (socket.id, msg) VALUES ('Socket-id', 'Message')";
-    db.query(sql, function (err, result) {
-        if (err) throw err;
-        console.log("1 record inserted");
-      });
 
-//FIXA DENNA FUNKTION.. Ska skicka message från form till databas
+  app.post("/add-post", function(req, res) { 
+    var msg = req.body.message;
+    db.getConnection();
+    db.addPost(socket.id, msg);
+})
+
 })
 
 server.listen(port, () => {
