@@ -8,13 +8,26 @@ async function getConnection() {
     database: "project 1",
   })
 }
-async function addPost(socketId, message){
+async function addPost(data){
   const con = await getConnection()
-  const send = await con.query("INSERT INTO data (SocketID, Message) VALUES(?,?)", [socketId, message])
+  const send = await con.query("INSERT INTO data (Username, Message) VALUES(?,?)", [data.Username, data.Message])
   await con.end()
+}
+
+
+async function getMessages() {
+
+  const con = await getConnection()
+  const result = await con.execute("SELECT Username, Message FROM data")
+
+  console.log(result[0])
+
+  await con.end() 
+  return result[0]
 }
 
 module.exports = {
   getConnection,
   addPost,
+  getMessages,
 }
