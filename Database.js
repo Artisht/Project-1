@@ -20,8 +20,6 @@ async function getMessages() {
   const con = await getConnection()
   const result = await con.execute("SELECT Username, Message FROM data")
 
-  console.log(result[0])
-
   await con.end() 
   return result[0]
 }
