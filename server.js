@@ -14,7 +14,8 @@ app.use(express.static("public"));
 
 io.on("connection", async (socket) => {
   const count = io.engine.clientsCount;
-  console.log("A user just connected.", socket.id, count);
+  var clientIpAddress= socket.request.socket.remoteAddress;
+  console.log("A user just connected.", socket.id, count, clientIpAddress);
 
   let previousData = await db.getMessages();
   Object.keys(previousData).forEach((key) => {

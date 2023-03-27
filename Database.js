@@ -18,7 +18,7 @@ async function addPost(data){
 async function getMessages() {
 
   const con = await getConnection()
-  const result = await con.execute("SELECT Username, Message FROM data")
+  const result = await con.execute("SELECT Username, Message FROM data")  
 
   await con.end() 
   return result[0]
