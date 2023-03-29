@@ -12,25 +12,28 @@ let io = socketIO(server);
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static("public"));
 
+
+
 io.on("connection", async (socket) => {
   const count = io.engine.clientsCount;
   var clientIpAddress= socket.request.socket.remoteAddress;
   console.log("A user just connected.", socket.id, count, clientIpAddress);
 
-  let previousData = await db.getMessages();
-  Object.keys(previousData).forEach((key) => {
-    socket.broadcast.emit("Connection", previousData[key]);
-    socket.emit("Connection", previousData[key]);
-  })
+  /*
+    let previousData = await db.getMessages();
+    Object.keys(previousData).forEach((key) => {
+      socket.broadcast.emit("Connection", previousData[key]);
+      socket.emit("Connection", previousData[key]);
+    })
+  */
 
   socket.on("disconnect", () => {
     console.log("A user has disconnected.");
   });
-
+  
   socket.on("submit", (data) => {
-    console.log(data);
-    socket.broadcast.emit("messageReceived", data);
-    socket.emit("messageReceived", data);
+    // socket.broadcast.emit("messageReceived", data);
+    // socket.emit("messageReceived", data);
     db.addPost(data);
   });
 });

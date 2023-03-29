@@ -1,49 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
     <h1>Message Board:</h1>
-    <div id="messageBoard">
+    <div id="messageBoard"></div>
 
-
-    </div>
-    
     <form>
-        <label for="username">Username</label><br>
-        <input type="text" id="username" name="username"><br>
-        <label for="message">Message</label><br>
-        <input type="text" id="message" name="message"><br>
-        <input type="button" id="submit" name="submit" value="Submit" ><br>
+      <label for="username">Username</label><br />
+      <input type="text" id="username" name="username" /><br />
+      <label for="password">Password</label><br />
+      <input type="text" id="password" name="password" /><br />
+      <input type="button" id="submit" name="submit" value="Submit" /><br />
     </form>
-</body>
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io();
+  </body>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
 
-        document.getElementById("submit").addEventListener("click", () => {
-            socket.emit("submit", {
-                Username: document.getElementById("username").value,
-                Message: document.getElementById("message").value,
-        })
-        })
+    document.getElementById("submit").addEventListener("click", () => {
+      socket.emit("submit", {
+        Username: document.getElementById("username").value,
+        Password: document.getElementById("password").value,
+      });
+    });
+    socket.on("TakenUsername")
+      {
+        window.alert("Username is already taken");
+        console.log("Alert")
+      }
+    // socket.on("messageReceived", (data) => {
+    //     let board = document.querySelector('#messageBoard');
 
-        socket.on("messageReceived", (data) => {
-            let board = document.querySelector('#messageBoard');
+    //     board.insertAdjacentHTML('afterbegin', '<h2> User: ' + data.Username +'</h2> <br>' + '<p> Message: ' + data.Message + '</p>' );
+    // })
 
-            board.insertAdjacentHTML('afterbegin', '<h2> User: ' + data.Username +'</h2> <br>' + '<p> Message: ' + data.Message + '</p>' );
-        })
+    // socket.on("Connection", (data) => {
+    //     let board = document.querySelector('#messageBoard');
 
-        socket.on("Connection", (data) => {
-            let board = document.querySelector('#messageBoard');
+    //     board.insertAdjacentHTML('afterbegin', '<h2 class="user"> User: ' + data.Username +'</h2> <br>' + '<h3> Message: </h3    >' + '<p>' + data.Message + '</p>' );
 
-            board.insertAdjacentHTML('afterbegin', '<h2 class="user"> User: ' + data.Username +'</h2> <br>' + '<h3> Message: </h3    >' + '<p>' + data.Message + '</p>' );
-       
-        })
-    </script>
+    // })
+  </script>
 </html>
