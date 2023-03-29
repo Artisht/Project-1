@@ -31,10 +31,18 @@ io.on("connection", async (socket) => {
     console.log("A user has disconnected.");
   });
   
-  socket.on("submit", (data) => {
+  socket.on("submit", async (data) => {
     // socket.broadcast.emit("messageReceived", data);
     // socket.emit("messageReceived", data);
-    db.addPost(data);
+    const con = await db.getConnection()
+    const password = db.hash(data.Password)
+    const check = await con.query("SELECT Username AS user FROM data WHERE Username = ?", [data.Username] )
+    if (check[0].length > 0){
+      socket.emit("TakenUsername")
+    }else {
+      const send = await con.query("INSERT INTO data (Username, Password) VALUES(?,?)", [data.Username, password])
+    }
+    await con.end()
   });
 });
 

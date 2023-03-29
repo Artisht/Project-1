@@ -29,11 +29,10 @@
         Password: document.getElementById("password").value,
       });
     });
-    socket.on("TakenUsername")
-      {
+    socket.on("TakenUsername", () => {
         window.alert("Username is already taken");
         console.log("Alert")
-      }
+    })
     // socket.on("messageReceived", (data) => {
     //     let board = document.querySelector('#messageBoard');
 
