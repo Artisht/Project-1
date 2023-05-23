@@ -8,14 +8,15 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <h1>Message Board:</h1>
-    <div id="messageBoard"></div>
+    <div id="Title">
+      <h1>Login:</h1>
+    </div>
 
     <form>
       <label for="username">Username</label><br />
       <input type="text" id="username" name="username" /><br />
       <label for="password">Password</label><br />
-      <input type="text" id="password" name="password" /><br />
+      <input type="password" id="password" name="password" /><br />
       <input type="button" id="submit" name="submit" value="Submit" /><br />
     </form>
   </body>
@@ -28,6 +29,7 @@
         Username: document.getElementById("username").value,
         Password: document.getElementById("password").value,
       });
+      location.href = "Rooms.html";
     });
     socket.on("TakenUsername", () => {
         window.alert("Username is already taken");

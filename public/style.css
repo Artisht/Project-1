@@ -14,8 +14,11 @@ form {
     max-width: 600px;
   }
   
-  #messageBoard {
-    margin-bottom: 80px; 
+  #Title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
   }
   .user{
     border-top: 1px solid black;
@@ -28,6 +31,14 @@ form {
   }
   
   input[type="text"] {
+    padding: 10px;
+    border-radius: 5px;
+    border: none;
+    background-color: #f9f9f9;
+    margin-bottom: 15px;
+    width: 100%;
+  }
+  input[type="password"] {
     padding: 10px;
     border-radius: 5px;
     border: none;
