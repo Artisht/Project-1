@@ -1,51 +1,181 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div id="Title">
-      <h1>Login:</h1>
+<html>
+<head>
+  <title>Chat Rooms</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>Chat Rooms</h1>
+
+  <div id="loginSection">
+    <h2>Login</h2>
+    <input type="text" id="usernameInput" placeholder="Username">
+    <button id="loginButton">Login</button>
+  </div>
+
+  <div id="roomSection" style="display: none;">
+    <h2>Welcome, <span id="username"></span>!</h2>
+
+    <h3>Create a Room</h3>
+    <input type="text" id="newRoomInput" placeholder="Room Name">
+    <button id="createRoomButton">Create Room</button>
+
+    <h3>Join a Room</h3>
+    <div id="roomList"></div>
+
+    <h3>Chat Room</h3>
+    <div id="chatRoom">
+      <div id="chatMessages"></div>
+      <div id="messageBox">
+        <input type="text" id="messageInput" placeholder="Type your message">
+        <button id="sendButton">Send</button>
+      </div>
     </div>
 
-    <form>
-      <label for="username">Username</label><br />
-      <input type="text" id="username" name="username" /><br />
-      <label for="password">Password</label><br />
-      <input type="password" id="password" name="password" /><br />
-      <input type="button" id="submit" name="submit" value="Submit" /><br />
-    </form>
-  </body>
-  <script src="/socket.io/socket.io.js"></script>
+    <button id="leaveButton">Leave Room</button>
+  </div>
+
   <script>
     const socket = io();
+    let username = '';
+    let currentRoom = '';
 
-    document.getElementById("submit").addEventListener("click", () => {
-      socket.emit("submit", {
-        Username: document.getElementById("username").value,
-        Password: document.getElementById("password").value,
-      });
-      location.href = "Rooms.html";
+    function handleLogin() {
+      const usernameInput = document.getElementById('usernameInput');
+      username = usernameInput.value.trim();
+
+      if (username !== '') {
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('roomSection').style.display = 'block';
+        document.getElementById('username').innerText = username;
+        socket.emit('login', username);
+      }
+    }
+
+
+    function createRoom() {
+      const newRoomInput = document.getElementById('newRoomInput');
+      const roomName = newRoomInput.value.trim();
+
+      if (roomName !== '') {
+        socket.emit('createRoom', roomName);
+        newRoomInput.value = '';
+      }
+    }
+
+    function sendMessage() {
+      const messageInput = document.getElementById('messageInput');
+      const message = messageInput.value.trim();
+
+      if (message !== '') {
+        socket.emit('sendMessage', { username, message, room: currentRoom });
+        messageInput.value = '';
+      }
+    }
+
+    function joinRoom(roomId) {
+      socket.emit('joinRoom', roomId);
+      currentRoom = roomId;
+      document.getElementById('roomList').style.display = 'none';
+      document.getElementById('leaveButton').style.display = 'block';
+      document.getElementById('chatMessages').innerHTML = '';
+    }
+
+    function leaveRoom() {
+      socket.emit('leaveRoom', currentRoom);
+      currentRoom = '';
+      document.getElementById('roomList').style.display = 'block';
+      document.getElementById('leaveButton').style.display = 'none';
+      document.getElementById('chatMessages').innerHTML = '';
+    }
+
+    function updateRoomList(roomList) {
+      const roomListElement = document.getElementById('roomList');
+      roomListElement.innerHTML = '';
+
+      for (const roomId in roomList) {
+        const roomName = roomList[roomId].name;
+
+        const roomBox = document.createElement('div');
+        roomBox.classList.add('roomBox');
+
+        const roomNameElement = document.createElement('p');
+        roomNameElement.innerText = roomName;
+
+        const joinButton = document.createElement('button');
+        joinButton.innerText = 'Join';
+        joinButton.addEventListener('click', () => {
+          joinRoom(roomId);
+        });
+
+        roomBox.appendChild(roomNameElement);
+        roomBox.appendChild(joinButton);
+        roomListElement.appendChild(roomBox);
+      }
+    }
+
+    function displayMessage(data) {
+      const chatMessages = document.getElementById('chatMessages');
+      const messageElement = document.createElement('p');
+      messageElement.innerText = `${data.username}: ${data.message}`;
+      chatMessages.appendChild(messageElement);
+    }
+
+    socket.on('connect', () => {
+      console.log('Connected to the server');
     });
-    socket.on("TakenUsername", () => {
-        window.alert("Username is already taken");
-        console.log("Alert");
-    })
-    // socket.on("messageReceived", (data) => {
-    //     let board = document.querySelector('#messageBoard');
 
-    //     board.insertAdjacentHTML('afterbegin', '<h2> User: ' + data.Username +'</h2> <br>' + '<p> Message: ' + data.Message + '</p>' );
-    // })
+    socket.on('disconnect', () => {
+      console.log('Disconnected from the server');
+      document.getElementById('loginSection').style.display = 'block';
+      document.getElementById('roomSection').style.display = 'none';
+      document.getElementById('usernameInput').value = '';
+      document.getElementById('roomList').innerHTML = '';
+      document.getElementById('chatMessages').innerHTML = '';
+    });
 
-    // socket.on("Connection", (data) => {
-    //     let board = document.querySelector('#messageBoard');
+    socket.on('roomList', (roomList) => {
+      updateRoomList(roomList);
+    });
 
-    //     board.insertAdjacentHTML('afterbegin', '<h2 class="user"> User: ' + data.Username +'</h2> <br>' + '<h3> Message: </h3    >' + '<p>' + data.Message + '</p>' );
+    socket.on('message', (data) => {
+      displayMessage(data);
+    });
 
-    // })
+    socket.on('roomCreated', (roomList) => {
+      updateRoomList(roomList);
+    });
+
+    socket.on('login', (roomList) => {
+      updateRoomList(roomList);
+    });
+
+    socket.on('roomJoined', (roomMessages) => {
+      const chatMessages = document.getElementById('chatMessages');
+      chatMessages.innerHTML = '';
+
+      for (const message of roomMessages) {
+        const messageElement = document.createElement('p');
+        messageElement.innerText = `${message.username}: ${message.message}`;
+        chatMessages.appendChild(messageElement);
+      }
+    });
+
+    socket.on('loadOldMessages', (roomMessages) => {
+      const chatMessages = document.getElementById('chatMessages');
+
+      for (const message of roomMessages) {
+        const messageElement = document.createElement('p');
+        messageElement.innerText = `${message.username}: ${message.message}`;
+        chatMessages.appendChild(messageElement);
+      }
+    });
+
+    document.getElementById('loginButton').addEventListener('click', handleLogin);
+    document.getElementById('createRoomButton').addEventListener('click', createRoom);
+    document.getElementById('sendButton').addEventListener('click', sendMessage);
+    document.getElementById('leaveButton').addEventListener('click', leaveRoom);
   </script>
+</body>
 </html>

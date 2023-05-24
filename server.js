@@ -1,50 +1,100 @@
-const express = require("express");
+const express = require('express');
+const http = require('http');
+const socketIO = require('socket.io');
+const bodyParser = require('body-parser');
+
 const app = express();
-const bodyParser = require("body-parser");
-const db = require("./Database.js");
-const port = 3000;
-
-const http = require("http");
-const socketIO = require("socket.io");
-let server = http.createServer(app);
-let io = socketIO(server);
-
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static("public"));
+app.use(express.static('public'));
+
+const server = http.createServer(app);
+const io = socketIO(server);
+
+const PORT = 3000;
 
 
+const rooms = {};
 
-io.on("connection", async (socket) => {
-  const count = io.engine.clientsCount;
-  console.log("A user just connected.", socket.id, count);
 
-  /*
-    let previousData = await db.getMessages();
-    Object.keys(previousData).forEach((key) => {
-      socket.broadcast.emit("Connection", previousData[key]);
-      socket.emit("Connection", previousData[key]);
-    })
-  */
-
-  socket.on("disconnect", () => {
-    console.log("A user has disconnected.");
+io.on('connection', (socket) => {
+  console.log('A user connected');
+  socket.on('login', (username) => {
+    socket.username = username;
+    socket.emit('roomList', rooms);
   });
+
+  socket.on('createRoom', (roomName) => {
+    const roomId = generateRoomId();
+    const newRoom = {
+      id: roomId,
+      name: roomName,
+      users: {},
+      messages: []
+    };
+    rooms[roomId] = newRoom;
+
+    socket.join(roomId);
+    io.emit('roomList', rooms);
+
+    console.log(`Room "${roomName}" created with ID: ${roomId}`);
+  });
+
+socket.on('joinRoom', (roomId) => {
+    if (rooms.hasOwnProperty(roomId)) {
+      socket.join(roomId);
+      rooms[roomId].users[socket.id] = socket.username;
+
+      const roomMessages = rooms[roomId].messages;
+      if (roomMessages.length > 0) {
+        socket.emit('roomJoined', roomMessages);
+      }
   
-  socket.on("submit", async (data) => {
-    // socket.broadcast.emit("messageReceived", data);
-    // socket.emit("messageReceived", data);
-    const con = await db.getConnection()
-    const password = db.hash(data.Password)
-    const check = await con.query("SELECT Username AS user FROM data WHERE Username = ?", [data.Username] )
-    if (check[0].length > 0){
-      socket.emit("TakenUsername")
-    }else {
-      const send = await con.query("INSERT INTO data (Username, Password) VALUES(?,?)", [data.Username, password])
+      io.emit('roomList', rooms);
+      console.log(`User ${socket.username} joined Room ID: ${roomId}`);
     }
-    await con.end()
+  });
+
+
+  socket.on('leaveRoom', (roomId) => {
+    if (rooms.hasOwnProperty(roomId)) {
+      socket.leave(roomId);
+      delete rooms[roomId].users[socket.id];
+
+      io.emit('roomList', rooms);
+      console.log(`User ${socket.username} left Room ID: ${roomId}`);
+    }
+  });
+
+  socket.on('sendMessage', (data) => {
+    const roomId = data.room;
+    if (rooms.hasOwnProperty(roomId)) {
+      const messageData = {
+        username: socket.username,
+        message: data.message
+      };
+      rooms[roomId].messages.push(messageData);
+
+      io.to(roomId).emit('message', messageData);
+      console.log(`Message sent to Room ID: ${roomId}`);
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log('A user disconnected');
+    for (const roomId in rooms) {
+      if (rooms.hasOwnProperty(roomId) && rooms[roomId].users.hasOwnProperty(socket.id)) {
+        delete rooms[roomId].users[socket.id];
+        io.emit('roomList', rooms);
+        console.log(`User ${socket.username} left Room ID: ${roomId}`);
+      }
+    }
   });
 });
 
-server.listen(port, () => {
-  console.log(`Listening on port ${port}`);
+function generateRoomId() {
+  return Math.random().toString(36).substring(2, 10);
+}
+
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
