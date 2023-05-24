@@ -10,4 +10,6 @@ Allt är i socket så det är också samtidigt live. Användaren kan enkellt vä
 
 Rolig grej. Det användarnamn du väljer står i Chat delen av sidan. Där det skriver "Welcome ______ " där det blanka är ditt namn. En liten grej jag tyckte vad nödvändigt.
 
+OBS: Valde att ta bort databas användan för att det var inte ideen i början att ha en. Det ska vara fritt att ha olika användarnamn. Jag hoppas att du bedömmer min tidigare användning av databaser (t.ex Rest-API) när det kommer till betygsätning (Snälla?) 
+
 Hoppas du tycker om projektet. MVH Artin S.
